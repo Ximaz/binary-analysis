@@ -13,6 +13,11 @@ typedef struct s_zip_compression_method {
   const char *value;
 } zip_compression_method_t;
 
+typedef struct s_zip_info {
+  uint8_t is_encrypted;
+  const char *compression_method;
+} zip_info_t;
+
 static const zip_compression_method_t ZIP_COMPRESSION_METHODS[] = {
     {0, "no compression"},
     {1, "shrunk"},
@@ -46,7 +51,7 @@ static const char *find_zip_compression_method(uint16_t key) {
 }
 
 static uint8_t print_zip_info(analyzer_t *analyzer, uint64_t initial_offset,
-                              uint64_t offset, const char *compression_method) {
+                              uint64_t offset, zip_info_t *zip_info) {
   uint64_t blob_size = 0;
   uint16_t comment_len = 0;
   uint8_t eocd[ZIP_EOCD_HEADER_SIZE] = {0};
@@ -59,7 +64,8 @@ static uint8_t print_zip_info(analyzer_t *analyzer, uint64_t initial_offset,
     return 0;
   }
   blob_size = (offset + ZIP_EOCD_HEADER_SIZE + comment_len) - initial_offset;
-  printf("0x%016llx ZIP archive (%s)\n", initial_offset, compression_method);
+  printf("0x%016llx ZIP archive (%s) (encrypted: %d)\n", initial_offset,
+         zip_info->compression_method, zip_info->is_encrypted);
   printf("0x%016llx End of ZIP archive (%llu bytes)\n", analyzer->offset,
          blob_size);
   return 1;
@@ -70,7 +76,7 @@ uint8_t guess_zip(analyzer_t *analyzer) {
   uint8_t zip_header[ZIP_HEADER_SIZE] = {0};
   uint64_t initial_offset = analyzer->offset;
   uint64_t offset = 0;
-  const char *compression_method = "Unknown compression method";
+  zip_info_t zip_info = {0, "Unknown compression method"};
 
   if ((analyzer->offset + 4) > analyzer->limit ||
       -1 == analyzer_seek_to(analyzer, analyzer->offset) ||
@@ -86,8 +92,10 @@ uint8_t guess_zip(analyzer_t *analyzer) {
                                 ZIP_HEADER_SIZE - 4)) {
       return 0;
     }
-    compression_method = find_zip_compression_method(
+    zip_info.compression_method = find_zip_compression_method(
         (uint16_t)(*(zip_header + 8) | (*(zip_header + 9) << 4)));
+    zip_info.is_encrypted =
+        ((uint16_t)(*(zip_header + 6) | (*(zip_header + 7) << 4)) & 1);
   }
   offset = (analyzer->offset + 4);
   while (offset + 22 <= analyzer->limit) {
@@ -99,7 +107,7 @@ uint8_t guess_zip(analyzer_t *analyzer) {
       ++offset;
       continue;
     }
-    return print_zip_info(analyzer, initial_offset, offset, compression_method);
+    return print_zip_info(analyzer, initial_offset, offset, &zip_info);
   }
   return 0;
 }

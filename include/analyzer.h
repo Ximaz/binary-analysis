@@ -52,13 +52,7 @@ int8_t analyzer_seek_to(analyzer_t *self, uint64_t offset);
  */
 typedef uint8_t (*format_guesser_t)(analyzer_t *analyzer);
 
-/**
- * @brief Guess whether the current offset points to a zip archive.
- * @param analyzer The analyzer.
- * @return 1 if it matches, 0 otherwise.
- */
-uint8_t guess_zip(analyzer_t *analyzer);
-
+extern uint8_t guess_zip(analyzer_t *analyzer);
 static const format_guesser_t GUESSERS[] = {guess_zip};
 
 #define TOTAL_GUESSERS (sizeof(GUESSERS) / sizeof(format_guesser_t))

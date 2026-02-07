@@ -6,7 +6,10 @@ int8_t analyzer_seek_to(analyzer_t *self, uint64_t offset) {
   if (offset > self->limit) {
     return -1;
   }
-  fseek(self->binary, 0, SEEK_SET);
+  if (-1 == fseek(self->binary, 0, SEEK_SET)) {
+    perror("fseek");
+    return -1;
+  }
   while (offset > LONG_MAX) {
     if (-1 == fseek(self->binary, LONG_MAX, SEEK_CUR)) {
       perror("fseek");

@@ -18,9 +18,10 @@ int main(int argc, const char *argv[]) {
   }
   while (analyzer.offset < analyzer.limit) {
     initial_state = analyzer.offset;
-    for (; i < TOTAL_GUESSERS; ++i) {
-      if (0 == GUESSERS[i](&analyzer)) {
-        analyzer_seek_to(&analyzer, initial_state);
+    for (; i < TOTAL_GUESSERS && 0 == GUESSERS[i](&analyzer); ++i) {
+      if (-1 == analyzer_seek_to(&analyzer, initial_state)) {
+        analyzer_destroy(&analyzer);
+        return EXIT_FAILURE;
       }
     }
     ++analyzer.offset;
