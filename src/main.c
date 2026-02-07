@@ -8,7 +8,7 @@ int main(int argc, const char *argv[]) {
   analyzer_t analyzer = {0};
   options_t options = {0};
   uint64_t i = 0;
-  off_t initial_state = 0;
+  uint64_t initial_state = 0;
 
   if (-1 == cli_parse_options(&options, argc, argv)) {
     return EXIT_FAILURE;
@@ -20,7 +20,7 @@ int main(int argc, const char *argv[]) {
     initial_state = analyzer.offset;
     for (; i < TOTAL_GUESSERS; ++i) {
       if (0 == GUESSERS[i](&analyzer)) {
-        fseeko(analyzer.binary, initial_state, SEEK_SET);
+        analyzer_seek_to(&analyzer, initial_state);
       }
     }
     ++analyzer.offset;

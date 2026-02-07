@@ -7,8 +7,8 @@
 
 typedef struct s_analyzer {
   FILE *binary;
-  off_t offset;
-  off_t limit;
+  uint64_t offset;
+  uint64_t limit;
 } analyzer_t;
 
 /**
@@ -24,6 +24,24 @@ int8_t analyzer_new(analyzer_t *self, const options_t *options);
  * @param self The analyzer.
  */
 void analyzer_destroy(analyzer_t *self);
+
+/**
+ * @brief Tries to read data from the binary.
+ * @details Check read boundaries before attempting to read.
+ * @param self The analyzer.
+ * @param output The output.
+ * @param size The size of each element.
+ * @param count The number of element to read.
+ * @return 0 on successful read, -1 otherwise.
+ */
+int8_t analyzer_try_read(analyzer_t *self, void *output, uint64_t size,
+                         uint64_t count);
+
+int8_t analyzer_forward_seek(analyzer_t *self, uint64_t offset);
+
+int8_t analyzer_backward_seek(analyzer_t *self, uint64_t offset);
+
+int8_t analyzer_seek_to(analyzer_t *self, uint64_t offset);
 
 /**
  * @brief A function that looks for its magic number / header
