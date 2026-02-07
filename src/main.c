@@ -24,7 +24,7 @@ int main(int argc, const char *argv[]) {
         return EXIT_FAILURE;
       }
     }
-    ++analyzer.offset;
+    analyzer.offset += (i == TOTAL_GUESSERS);
   }
   analyzer_destroy(&analyzer);
   return EXIT_SUCCESS;
